@@ -20,7 +20,7 @@ The goal of this project is to analyze and visualize crime data in Los Angeles f
 
 • Crime density heat maps showing crime hotspots within the city.
 
-•Interactive filters allowing users to adjust visualizations by crime type, time period, and location
+• Interactive filters allowing users to adjust visualizations by crime type, time period, and location
 
 ### Data Source:
 
