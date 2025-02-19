@@ -54,7 +54,7 @@ Dropdowns and Filters: Users will be able to filter crime data based on crime ty
 
 ### Three Key Views:
 
-**Crime Rate by Type and City:**
+**Crime Rate by Type and Location:**
 
 A bar chart or pie chart that displays the crime rate distribution for different crime types across Los Angeles. Users can filter this by specific cities or neighborhoods to narrow down their view.
 
