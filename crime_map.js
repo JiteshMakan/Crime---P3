@@ -1,51 +1,117 @@
+let originalData = [];  // This will store the original dataset
+let map, heatLayer;  // Store map and heatLayer to remove old heatmap and update it later
 
-// Load data using D3.js
+// Load the CSV data
 d3.csv('cleaned_data.csv').then(data => {
-    console.log(data);  // Log data to check it is loaded correctly
-    populateYearFilter(data);  // Populate the year dropdown
-    renderCrimeTable(data);     // Render crime table
-    renderBarGraph(data);       // Render bar graph
-    renderHeatMap(data);        // Render heatmap
+    originalData = data;
+    console.log("Data loaded:", originalData);  // Log the data to check
+
+    // Populate filters and render initial graphs after data is loaded
+    populateFilters(originalData);
+    renderBarGraph(originalData);  // Render the initial bar graph
+    renderHeatMap(originalData);  // Render the initial heatmap
 }).catch(error => {
     console.error('Error loading the CSV file:', error);
 });
 
-// Populate year dropdown
-function populateYearFilter(data) {
-    const years = [...new Set(data.map(item => item.year))];  // Get unique years
+// Function to extract the year from the 'date occ' column
+function extractYear(dateString) {
+    const date = new Date(dateString);
+    if (!isNaN(date.getTime())) {
+        return date.getFullYear();  // Return the year part of the date
+    } else {
+        return null;  // If the date is invalid, return null
+    }
+}
+
+// Function to populate filters (year, crime category, weapon category)
+function populateFilters(data) {
+    console.log("Populating filters with data:", data);
+
+    // Extract years between 2020 and 2025 from the 'date occ' column
+    const years = [...new Set(data.map(item => extractYear(item['date occ'])))];
+    const validYears = years.filter(year => year >= 2020 && year <= 2025);
+    console.log("Valid Years: ", validYears);  // Log to check extracted valid years
+
+    // Extract unique crime categories and weapon categories
+    const crimeTypes = [...new Set(data.map(item => item.crime_category))];
+    const weaponTypes = [...new Set(data.map(item => item.weapon_category))];
+    console.log("Crime Categories: ", crimeTypes);  // Log to check crime categories
+    console.log("Weapon Categories: ", weaponTypes);  // Log to check weapon categories
+
+    // Populate Year Filter Dropdown
     const yearSelect = document.getElementById('year-filter');
-    years.forEach(year => {
+    yearSelect.innerHTML = '<option value="">Select Year</option>';  // Clear any existing options
+    validYears.forEach(year => {
         const option = document.createElement('option');
         option.value = year;
         option.textContent = year;
         yearSelect.appendChild(option);
     });
+
+    // Populate Crime Category Filter Dropdown
+    const crimeSelect = document.getElementById('crime-category-filter');
+    crimeSelect.innerHTML = '<option value="">Select Crime Category</option>';
+    crimeTypes.forEach(crime => {
+        const option = document.createElement('option');
+        option.value = crime;
+        option.textContent = crime;
+        crimeSelect.appendChild(option);
+    });
+
+    // Populate Weapon Category Filter Dropdown
+    const weaponSelect = document.getElementById('weapon-filter');
+    weaponSelect.innerHTML = '<option value="">Select Weapon Type</option>';
+    weaponTypes.forEach(weapon => {
+        const option = document.createElement('option');
+        option.value = weapon;
+        option.textContent = weapon;
+        weaponSelect.appendChild(option);
+    });
+
+    // Add event listeners to update the map and graphs on filter change
+    yearSelect.addEventListener('change', filterData);
+    crimeSelect.addEventListener('change', filterData);
+    weaponSelect.addEventListener('change', filterData);
 }
 
-// Filter data based on selected year
+// Function to filter data based on selected filters
 function filterData() {
+    let filteredData = originalData;
+
     const selectedYear = document.getElementById('year-filter').value;
-    const filteredData = data.filter(d => d.year === selectedYear);
-    renderCrimeTable(filteredData);  // Update crime table
-    renderBarGraph(filteredData);    // Update bar graph
-    renderHeatMap(filteredData);     // Update heatmap
+    const selectedCrime = document.getElementById('crime-category-filter').value;
+    const selectedWeapon = document.getElementById('weapon-filter').value;
+
+    // Filter based on selected year
+    if (selectedYear) {
+        filteredData = filteredData.filter(item => extractYear(item['date occ']) === parseInt(selectedYear));
+    }
+
+    // Filter based on selected crime category
+    if (selectedCrime) {
+        filteredData = filteredData.filter(item => item.crime_category === selectedCrime);
+    }
+
+    // Filter based on selected weapon category
+    if (selectedWeapon) {
+        filteredData = filteredData.filter(item => item.weapon_category === selectedWeapon);
+    }
+
+    // Re-render the graphs and heatmap with the filtered data
+    renderBarGraph(filteredData);
+    renderHeatMap(filteredData);
+    renderCrimeSummary(filteredData);
 }
 
-// Render the Crime Table
-function renderCrimeTable(data) {
-    const tableBody = document.querySelector("#crime-summary");
-    tableBody.innerHTML = ''; // Clear any existing rows
-    // Example data to show in summary
-    tableBody.innerHTML = `
-        <p>Total Crimes: ${data.length}</p>
-        <p>Crime Categories: ${new Set(data.map(d => d.crime_category)).size}</p>
-    `;
-}
+// Function to render Bar Graph using Chart.js
+let barChart = null;  // Store the chart instance
 
-// Render Bar Graph using Chart.js
+// Function to render Bar Graph using Chart.js
 function renderBarGraph(data) {
     const crimeCategoryCounts = {};
 
+    // Count crimes per category
     data.forEach(crime => {
         const category = crime.crime_category;
         crimeCategoryCounts[category] = (crimeCategoryCounts[category] || 0) + 1;
@@ -54,8 +120,15 @@ function renderBarGraph(data) {
     const categories = Object.keys(crimeCategoryCounts);
     const counts = categories.map(cat => crimeCategoryCounts[cat]);
 
-    const ctx = document.getElementById('bar-graph').getContext('2d');
-    new Chart(ctx, {
+    const ctx = document.getElementById('bar-graph').getContext('2d');  // Get the canvas context
+
+    // If there's an existing chart, destroy it before creating a new one
+    if (barChart) {
+        barChart.destroy();
+    }
+
+    // Create a new chart instance
+    barChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: categories,
@@ -70,12 +143,52 @@ function renderBarGraph(data) {
     });
 }
 
-// Render Heatmap using Leaflet
+// Function to render Heatmap using Leaflet
 function renderHeatMap(data) {
-    const map = L.map('heatmap').setView([34.0522, -118.2437], 12);  // Los Angeles coordinates
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    if (!map) {
+        // Initialize the map if it's not already initialized
+        map = L.map('heatmap').setView([34.0522, -118.2437], 12);  // Los Angeles coordinates
 
-    // Prepare heatmap data
+        // Set up the OpenStreetMap layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    } else {
+        // Clear previous heat layer if it exists
+        if (heatLayer) {
+            heatLayer.clearLayers();
+        }
+    }
+
+    // Create the heatmap data based on crime locations (latitude and longitude)
     const heatData = data.map(crime => [+crime.lat, +crime.lon, crime.status === 'SOLVED' ? 1 : 0]);
-    L.heatLayer(heatData, { radius: 25 }).addTo(map);
+    
+    // Create or update the heat layer
+    heatLayer = L.heatLayer(heatData, { radius: 25 }).addTo(map);
 }
+
+// Function to render the Crime Data Summary
+function renderCrimeSummary(data) {
+    const summaryElement = document.getElementById('crime-summary');
+    summaryElement.innerHTML = '';  // Clear any existing summary
+
+    const totalCrimes = data.length;
+    const totalSolved = data.filter(item => item.status === 'SOLVED').length;
+    const totalUnsolved = totalCrimes - totalSolved;
+
+    const summaryHTML = `
+        <p>Total Crimes: ${totalCrimes}</p>
+        <p>Solved Crimes: ${totalSolved}</p>
+        <p>Unsolved Crimes: ${totalUnsolved}</p>
+    `;
+
+    summaryElement.innerHTML = summaryHTML;
+}
+
+// Initialize the map once (if not initialized already)
+function initializeMap() {
+    if (!map) {
+        map = L.map('heatmap').setView([34.0522, -118.2437], 12);  // Los Angeles coordinates
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    }
+}
+
+initializeMap();  // Call to initialize the map
