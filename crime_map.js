@@ -10,6 +10,8 @@ d3.csv('cleaned_data.csv').then(data => {
     populateFilters(originalData);
     renderBarGraph(originalData);  // Render the initial bar graph
     renderHeatMap(originalData);  // Render the initial heatmap
+    renderCrimeSummary(originalData); // Populate summary table immediately
+
 }).catch(error => {
     console.error('Error loading the CSV file:', error);
 });
@@ -103,22 +105,43 @@ function filterData() {
     renderHeatMap(filteredData);
     renderCrimeSummary(filteredData);
 }
+// Function to determine if a crime is solved or unsolved
+function getCrimeStatus(status) {
+    const solvedStatuses = ['Adult Arrest', 'Adult Other', 'Juv Arrest', 'Juv Other'];
+    const unsolvedStatuses = ['Invest Cont', 'UNK'];
 
+    if (solvedStatuses.includes(status)) {
+        return 'SOLVED';
+    } else if (unsolvedStatuses.includes(status)) {
+        return 'UNSOLVED';
+    } else {
+        return 'UNKNOWN'; // For cases where status is not recognized (if any)
+    }
+}
 // Function to render Bar Graph using Chart.js
 let barChart = null;  // Store the chart instance
 
 // Function to render Bar Graph using Chart.js
 function renderBarGraph(data) {
-    const crimeCategoryCounts = {};
+    const crimeCategoryCounts = {
+        SOLVED: {},
+        UNSOLVED: {}
+    };
 
-    // Count crimes per category
+    // Count solved and unsolved crimes per category
     data.forEach(crime => {
         const category = crime.crime_category;
-        crimeCategoryCounts[category] = (crimeCategoryCounts[category] || 0) + 1;
+        const status = getCrimeStatus(crime['status desc']);
+
+        if (!crimeCategoryCounts[status][category]) {
+            crimeCategoryCounts[status][category] = 0;
+        }
+        crimeCategoryCounts[status][category] += 1;
     });
 
-    const categories = Object.keys(crimeCategoryCounts);
-    const counts = categories.map(cat => crimeCategoryCounts[cat]);
+    const categories = [...new Set(data.map(item => item.crime_category))]; // All unique crime categories
+    const solvedCounts = categories.map(cat => crimeCategoryCounts['SOLVED'][cat] || 0);
+    const unsolvedCounts = categories.map(cat => crimeCategoryCounts['UNSOLVED'][cat] || 0);
 
     const ctx = document.getElementById('bar-graph').getContext('2d');  // Get the canvas context
 
@@ -132,13 +155,22 @@ function renderBarGraph(data) {
         type: 'bar',
         data: {
             labels: categories,
-            datasets: [{
-                label: 'Crime Category Counts',
-                data: counts,
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
+            datasets: [
+                {
+                    label: 'Solved Crimes',
+                    data: solvedCounts,
+                    backgroundColor: 'green',
+                    borderColor: 'green',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Unsolved Crimes',
+                    data: unsolvedCounts,
+                    backgroundColor: 'red',
+                    borderColor: 'red',
+                    borderWidth: 1
+                }
+            ]
         }
     });
 }
@@ -147,22 +179,57 @@ function renderBarGraph(data) {
 function renderHeatMap(data) {
     if (!map) {
         // Initialize the map if it's not already initialized
-        map = L.map('heatmap').setView([34.0522, -118.2437], 12);  // Los Angeles coordinates
+        map = L.map('heatmap').setView([34.0522, -118.2437], 10);  // Los Angeles coordinates
 
         // Set up the OpenStreetMap layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     } else {
-        // Clear previous heat layer if it exists
-        if (heatLayer) {
-            heatLayer.clearLayers();
-        }
+        // Clear previous markers if they exist
+        map.eachLayer(layer => {
+            if (layer instanceof L.CircleMarker) {
+                map.removeLayer(layer);
+            }
+        });
     }
 
-    // Create the heatmap data based on crime locations (latitude and longitude)
-    const heatData = data.map(crime => [+crime.lat, +crime.lon, crime.status === 'SOLVED' ? 1 : 0]);
-    
-    // Create or update the heat layer
-    heatLayer = L.heatLayer(heatData, { radius: 25 }).addTo(map);
+    // Group crimes by their location (latitude, longitude)
+    const crimeLocations = {};
+
+    data.forEach(crime => {
+        const lat = parseFloat(crime.lat);
+        const lon = parseFloat(crime.lon);
+        const locationKey = `${lat},${lon}`;
+        const status = getCrimeStatus(crime['status desc']);  // Check if the crime is solved or unsolved
+
+        if (!crimeLocations[locationKey]) {
+            crimeLocations[locationKey] = { solved: 0, unsolved: 0 };
+        }
+        if (status === 'SOLVED') {
+            crimeLocations[locationKey].solved += 1;
+        } else if (status === 'UNSOLVED') {
+            crimeLocations[locationKey].unsolved += 1;
+        }
+    });
+
+    // Create circles for each unique crime location
+    Object.keys(crimeLocations).forEach(locationKey => {
+        const [lat, lon] = locationKey.split(',').map(Number);
+        const solvedCount = crimeLocations[locationKey].solved;
+        const unsolvedCount = crimeLocations[locationKey].unsolved;
+
+        // Create the circle with color based on status
+        const radius = Math.min(Math.sqrt(solvedCount + unsolvedCount) * 4, 15);
+        const color = solvedCount > unsolvedCount ? 'green' : 'red';
+
+        // Create the circle with black border
+        L.circleMarker([lat, lon], {
+            radius: radius,
+            color: 'black',        // Black border color
+            weight: 2,             // Thickness of the border
+            fillColor: color,      // Color based on solved/unsolved status
+            fillOpacity: 0.6       // Fill opacity
+        }).addTo(map);
+    });
 }
 
 // Function to render the Crime Data Summary
@@ -171,13 +238,17 @@ function renderCrimeSummary(data) {
     summaryElement.innerHTML = '';  // Clear any existing summary
 
     const totalCrimes = data.length;
-    const totalSolved = data.filter(item => item.status === 'SOLVED').length;
+    const totalSolved = data.filter(item => getCrimeStatus(item['status desc']) === 'SOLVED').length;
     const totalUnsolved = totalCrimes - totalSolved;
+
+    // Calculate the solved rate (percentage of solved crimes)
+    const solvedRate = totalCrimes > 0 ? (totalSolved / totalCrimes) * 100 : 0;
 
     const summaryHTML = `
         <p>Total Crimes: ${totalCrimes}</p>
         <p>Solved Crimes: ${totalSolved}</p>
         <p>Unsolved Crimes: ${totalUnsolved}</p>
+        <p>Solved Rate: ${solvedRate.toFixed(2)}%</p>
     `;
 
     summaryElement.innerHTML = summaryHTML;
@@ -186,7 +257,7 @@ function renderCrimeSummary(data) {
 // Initialize the map once (if not initialized already)
 function initializeMap() {
     if (!map) {
-        map = L.map('heatmap').setView([34.0522, -118.2437], 12);  // Los Angeles coordinates
+        map = L.map('heatmap').setView([34.0522, -118.2437], 9.2);  // Los Angeles coordinates
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     }
 }
