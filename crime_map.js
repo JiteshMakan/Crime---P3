@@ -282,34 +282,37 @@ function renderCrimeSummary(data) {
 }
 
 // Function to render the Line Graph using Chart.js
-let lineChart = null;  
+let lineChart = null;
 
 function renderLineGraph(data) {
     const solvedCounts = {};
     const unsolvedCounts = {};
 
-    // Count the number of solved and unsolved crimes per year, starting from 2020
+    // Loop through each crime to separate solved and unsolved counts per year
     data.forEach(crime => {
         const year = extractYear(crime['date occ']);
-        if (year >= 2020) {  // Only include data from 2020 onward
+        if (year >= 2020 && year <= 2025) {  // Filter to include only data from 2020-2025
             const status = getCrimeStatus(crime['status desc']);
+            
+            // Initialize the year counts if not already set
+            if (!solvedCounts[year]) solvedCounts[year] = 0;
+            if (!unsolvedCounts[year]) unsolvedCounts[year] = 0;
+            
+            // Increment solved or unsolved count based on crime status
             if (status === 'SOLVED') {
-                solvedCounts[year] = solvedCounts[year] ? solvedCounts[year] + 1 : 1;
+                solvedCounts[year] += 1;
             } else if (status === 'UNSOLVED') {
-                unsolvedCounts[year] = unsolvedCounts[year] ? unsolvedCounts[year] + 1 : 1;
+                unsolvedCounts[year] += 1;
             }
         }
     });
 
-    // Debugging: Log the counts
-    console.log("Solved Counts:", solvedCounts);
-    console.log("Unsolved Counts:", unsolvedCounts);
-
-    const years = [...new Set([...Object.keys(solvedCounts), ...Object.keys(unsolvedCounts)])].sort();
+    // Collect years from the solved and unsolved counts
+    const years = Object.keys(solvedCounts).sort();
     const solvedCrimeCounts = years.map(year => solvedCounts[year] || 0);
     const unsolvedCrimeCounts = years.map(year => unsolvedCounts[year] || 0);
 
-    // Debugging: Log the years and crime counts
+    // Debugging: Log the years and the respective crime counts
     console.log("Years:", years);
     console.log("Solved Crime Counts:", solvedCrimeCounts);
     console.log("Unsolved Crime Counts:", unsolvedCrimeCounts);
@@ -325,16 +328,16 @@ function renderLineGraph(data) {
     lineChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: years,
+            labels: years,  // Use the years as x-axis labels
             datasets: [{
                 label: 'Solved Crimes',
-                data: solvedCrimeCounts,
+                data: solvedCrimeCounts,  // Data for solved crimes
                 borderColor: 'green',
                 fill: false,
                 borderWidth: 2
             }, {
                 label: 'Unsolved Crimes',
-                data: unsolvedCrimeCounts,
+                data: unsolvedCrimeCounts,  // Data for unsolved crimes
                 borderColor: 'red',
                 fill: false,
                 borderWidth: 2
@@ -346,7 +349,7 @@ function renderLineGraph(data) {
                 tooltip: {
                     callbacks: {
                         label: function(tooltipItem) {
-                            return tooltipItem.raw + ' Crimes';
+                            return tooltipItem.raw + ' Crimes';  // Add a unit to the tooltip
                         }
                     }
                 }
