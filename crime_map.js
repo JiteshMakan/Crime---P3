@@ -298,6 +298,9 @@ function renderLineGraph(data) {
         }
     });
 
+    // Debugging: Log the counts
+    console.log("Year Counts:", yearCounts);
+
     const years = Object.keys(yearCounts).sort();
     const crimeCounts = years.map(year => yearCounts[year]);
 
@@ -320,6 +323,18 @@ function renderLineGraph(data) {
                 fill: false,
                 borderWidth: 2
             }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            return tooltipItem.raw + ' Crimes';
+                        }
+                    }
+                }
+            }
         }
     });
 }
