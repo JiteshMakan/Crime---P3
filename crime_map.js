@@ -5,7 +5,7 @@ let map, heatLayer;
 // Load the CSV data - to be replaced when data is hosted on a server
 d3.csv('cleaned_data.csv').then(data => {
     originalData = data;
-    console.log("Data loaded:", originalData);  
+    console.log("Data loaded:", originalData);
 
     // Populate filters and render initial graphs after data is loaded
     populateFilters(originalData);
@@ -28,6 +28,7 @@ function extractYear(dateString) {
 }
 
 // Function to populate filters (year, crime category, weapon category)
+// Function to populate filters (year, crime category, weapon category)
 function populateFilters(data) {
     console.log("Populating filters with data:", data);
 
@@ -38,13 +39,13 @@ function populateFilters(data) {
 
     // Extract unique crime categories and weapon categories
     const crimeTypes = [...new Set(data.map(item => item.crime_category))];
-    const weaponTypes = [...new Set(data.map(item => item.weapon_category))];
+    const weaponTypes = [...new Set(data.map(item => item.weapon_category || "NO WEAPON INVOLVED"))];
     console.log("Crime Categories: ", crimeTypes);  
     console.log("Weapon Categories: ", weaponTypes);  
 
     // Populate Year Filter Dropdown
     const yearSelect = document.getElementById('year-filter');
-    yearSelect.innerHTML = '<option value="">Select Year</option>';  
+    yearSelect.innerHTML = '<option value="">Select All</option>';  
     validYears.forEach(year => {
         const option = document.createElement('option');
         option.value = year;
@@ -54,7 +55,7 @@ function populateFilters(data) {
 
     // Populate Crime Category Filter Dropdown
     const crimeSelect = document.getElementById('crime-category-filter');
-    crimeSelect.innerHTML = '<option value="">Select Crime Category</option>';
+    crimeSelect.innerHTML = '<option value="">Select All</option>';
     crimeTypes.forEach(crime => {
         const option = document.createElement('option');
         option.value = crime;
@@ -62,9 +63,9 @@ function populateFilters(data) {
         crimeSelect.appendChild(option);
     });
 
-    // Populate Weapon Category Filter Dropdown
+    // Populate Weapon Category Filter Dropdown with updated default text
     const weaponSelect = document.getElementById('weapon-filter');
-    weaponSelect.innerHTML = '<option value="">Select Weapon Type</option>';
+    weaponSelect.innerHTML = '<option value="">Select All</option>'; 
     weaponTypes.forEach(weapon => {
         const option = document.createElement('option');
         option.value = weapon;
