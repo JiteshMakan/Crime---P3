@@ -285,28 +285,34 @@ function renderCrimeSummary(data) {
 let lineChart = null;  
 
 function renderLineGraph(data) {
-    const yearCounts = {};
+    const solvedCounts = {};
+    const unsolvedCounts = {};
 
-    // Count the number of crimes per year
+    // Count the number of solved and unsolved crimes per year, starting from 2020
     data.forEach(crime => {
         const year = extractYear(crime['date occ']);
-        if (year) {
-            if (!yearCounts[year]) {
-                yearCounts[year] = 0;
+        if (year >= 2020) {  // Only include data from 2020 onward
+            const status = getCrimeStatus(crime['status desc']);
+            if (status === 'SOLVED') {
+                solvedCounts[year] = solvedCounts[year] ? solvedCounts[year] + 1 : 1;
+            } else if (status === 'UNSOLVED') {
+                unsolvedCounts[year] = unsolvedCounts[year] ? unsolvedCounts[year] + 1 : 1;
             }
-            yearCounts[year] += 1;
         }
     });
 
     // Debugging: Log the counts
-    console.log("Year Counts:", yearCounts);
+    console.log("Solved Counts:", solvedCounts);
+    console.log("Unsolved Counts:", unsolvedCounts);
 
-    const years = Object.keys(yearCounts).sort();
-    const crimeCounts = years.map(year => yearCounts[year]);
+    const years = [...new Set([...Object.keys(solvedCounts), ...Object.keys(unsolvedCounts)])].sort();
+    const solvedCrimeCounts = years.map(year => solvedCounts[year] || 0);
+    const unsolvedCrimeCounts = years.map(year => unsolvedCounts[year] || 0);
 
     // Debugging: Log the years and crime counts
     console.log("Years:", years);
-    console.log("Crime Counts:", crimeCounts);
+    console.log("Solved Crime Counts:", solvedCrimeCounts);
+    console.log("Unsolved Crime Counts:", unsolvedCrimeCounts);
 
     const ctx = document.getElementById('line-graph').getContext('2d');
 
@@ -321,9 +327,15 @@ function renderLineGraph(data) {
         data: {
             labels: years,
             datasets: [{
-                label: 'Crimes per Year',
-                data: crimeCounts,
-                borderColor: 'blue',
+                label: 'Solved Crimes',
+                data: solvedCrimeCounts,
+                borderColor: 'green',
+                fill: false,
+                borderWidth: 2
+            }, {
+                label: 'Unsolved Crimes',
+                data: unsolvedCrimeCounts,
+                borderColor: 'red',
                 fill: false,
                 borderWidth: 2
             }]
