@@ -88,7 +88,7 @@ function filterData() {
     const selectedWeapon = document.getElementById('weapon-filter').value;
     const selectedSolvedStatus = document.getElementById('solved-unsolved-filter').value;
 
-    // Apply filters to data
+    // Apply Year and Solved Status filters for all visuals (map, bar graph, crime summary)
     if (selectedYear) {
         filteredData = filteredData.filter(item => extractYear(item['date occ']) === parseInt(selectedYear));
     }
@@ -110,8 +110,8 @@ function filterData() {
     renderHeatMap(filteredData);
     renderCrimeSummary(filteredData);
 
-    // Re-render the line graph with category and weapon filters applied (ignores year and solved status)
-    renderLineGraph(filteredData);
+    // Re-render the line graph, but without applying Year and Solved Status filters
+    renderLineGraphWithCategoryAndWeapon(filteredData);
 }
 
 // Function to determine if a crime is solved or unsolved
@@ -244,14 +244,28 @@ function renderHeatMap(data) {
 let lineChart = null;
 
 // Function to render Line Graph
-function renderLineGraph(data) {
+function renderLineGraphWithCategoryAndWeapon(data) {
+    // First, filter data based on only Crime Category and Weapon
+    const selectedCrime = document.getElementById('crime-category-filter').value;
+    const selectedWeapon = document.getElementById('weapon-filter').value;
+
+    // Filter data by Crime Category and Weapon Category
+    let filteredDataForLineGraph = data;
+    if (selectedCrime) {
+        filteredDataForLineGraph = filteredDataForLineGraph.filter(item => item.crime_category === selectedCrime);
+    }
+
+    if (selectedWeapon) {
+        filteredDataForLineGraph = filteredDataForLineGraph.filter(item => item.weapon_category === selectedWeapon);
+    }
+
+    // Calculate the crime counts by year for the filtered data
     const yearCrimeCounts = {
         SOLVED: { 2020: 0, 2021: 0, 2022: 0, 2023: 0, 2024: 0, 2025: 0 },
         UNSOLVED: { 2020: 0, 2021: 0, 2022: 0, 2023: 0, 2024: 0, 2025: 0 }
     };
 
-    // Count solved and unsolved crimes per year (only by category and weapon filters)
-    data.forEach(crime => {
+    filteredDataForLineGraph.forEach(crime => {
         const year = extractYear(crime['date occ']);
         const status = getCrimeStatus(crime['status desc']);
         
