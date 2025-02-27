@@ -12,7 +12,7 @@ d3.csv('https://crimedata2025.s3.us-east-2.amazonaws.com/cleaned_data.csv').then
     renderBarGraph(originalData);  
     renderHeatMap(originalData);  
     renderCrimeSummary(originalData);
-    renderLineGraph(originalData); 
+    renderLineGraph(originalData);  // Render the line graph immediately with full data
 
 }).catch(error => {
     console.error('Error loading the CSV file:', error);
@@ -29,7 +29,6 @@ function extractYear(dateString) {
 }
 
 // Function to populate filters (year, crime category, weapon category)
-
 function populateFilters(data) {
     console.log("Populating filters with data:", data);
 
@@ -80,7 +79,7 @@ function populateFilters(data) {
     weaponSelect.addEventListener('change', filterData);
 }
 
-// Function to filter data based on selected filters
+// Function to filter data based on selected filters (but including year and solved/unsolved for all visuals)
 function filterData() {
     let filteredData = originalData;
 
@@ -89,22 +88,19 @@ function filterData() {
     const selectedWeapon = document.getElementById('weapon-filter').value;
     const selectedSolvedStatus = document.getElementById('solved-unsolved-filter').value;
 
-    // Filter based on selected year (for the other graphs)
+    // Apply filters to data
     if (selectedYear) {
         filteredData = filteredData.filter(item => extractYear(item['date occ']) === parseInt(selectedYear));
     }
 
-    // Filter based on selected crime category (for the other graphs)
     if (selectedCrime) {
         filteredData = filteredData.filter(item => item.crime_category === selectedCrime);
     }
 
-    // Filter based on selected weapon category (for the other graphs)
     if (selectedWeapon) {
         filteredData = filteredData.filter(item => item.weapon_category === selectedWeapon);
     }
 
-    // Filter based on selected solved/unsolved status (for the other graphs)
     if (selectedSolvedStatus) {
         filteredData = filteredData.filter(item => getCrimeStatus(item['status desc']) === selectedSolvedStatus);
     }
@@ -113,8 +109,11 @@ function filterData() {
     renderBarGraph(filteredData);
     renderHeatMap(filteredData);
     renderCrimeSummary(filteredData);
+
+    // Re-render the line graph with category and weapon filters applied (ignores year and solved status)
     renderLineGraph(filteredData);
 }
+
 // Function to determine if a crime is solved or unsolved
 function getCrimeStatus(status) {
     const solvedStatuses = ['Adult Arrest', 'Adult Other', 'Juv Arrest', 'Juv Other'];
@@ -128,10 +127,10 @@ function getCrimeStatus(status) {
         return 'UNKNOWN'; 
     }
 }
+
 // Function to render Bar Graph using Chart.js
 let barChart = null;  
 
-// Function to render Bar Graph using Chart.js
 function renderBarGraph(data) {
     const crimeCategoryCounts = {
         SOLVED: {},
@@ -235,7 +234,7 @@ function renderHeatMap(data) {
         L.circleMarker([lat, lon], {
             radius: radius,
             color: 'black',        
-            weight: 2,             
+            weight: 2,              
             fillColor: color,      
             fillOpacity: 0.6       
         }).addTo(map);
@@ -251,7 +250,7 @@ function renderLineGraph(data) {
         UNSOLVED: { 2020: 0, 2021: 0, 2022: 0, 2023: 0, 2024: 0, 2025: 0 }
     };
 
-    // Count solved and unsolved crimes per year
+    // Count solved and unsolved crimes per year (only by category and weapon filters)
     data.forEach(crime => {
         const year = extractYear(crime['date occ']);
         const status = getCrimeStatus(crime['status desc']);
@@ -319,6 +318,7 @@ function renderLineGraph(data) {
         }
     });
 }
+
 // Function to render the Crime Data Summary
 function renderCrimeSummary(data) {
     const summaryElement = document.getElementById('crime-summary');
@@ -349,4 +349,4 @@ function initializeMap() {
     }
 }
 
-initializeMap();  
+initializeMap(); 
