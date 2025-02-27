@@ -240,6 +240,7 @@ function renderHeatMap(data) {
         }).addTo(map);
     });
 }
+
 let lineChart = null;
 
 // Function to render Line Graph
@@ -278,7 +279,7 @@ function renderLineGraph(data) {
     lineChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: years,
+            labels: years, 
             datasets: [
                 {
                     label: 'Solved Crimes',
@@ -303,7 +304,9 @@ function renderLineGraph(data) {
                     title: {
                         display: true,
                         text: 'Year'
-                    }
+                    },
+                    min: 2020, 
+                    max: 2025 
                 },
                 y: {
                     title: {
