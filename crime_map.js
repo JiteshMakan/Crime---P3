@@ -12,7 +12,7 @@ d3.csv('https://crimedata2025.s3.us-east-2.amazonaws.com/cleaned_data.csv').then
     renderBarGraph(originalData);  
     renderHeatMap(originalData);  
     renderCrimeSummary(originalData);
-    renderLineGraph(originalData);  // Render the line graph immediately with full data
+    renderLineGraphWithCategoryAndWeapon(originalData); 
 
 }).catch(error => {
     console.error('Error loading the CSV file:', error);
