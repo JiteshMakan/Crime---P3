@@ -12,6 +12,7 @@ d3.csv('https://crimedata2025.s3.us-east-2.amazonaws.com/cleaned_data.csv').then
     renderBarGraph(originalData);  
     renderHeatMap(originalData);  
     renderCrimeSummary(originalData); 
+    renderLineGraph(originalData);  // Add initial render of the line graph
 
 }).catch(error => {
     console.error('Error loading the CSV file:', error);
@@ -27,7 +28,6 @@ function extractYear(dateString) {
     }
 }
 
-// Function to populate filters (year, crime category, weapon category)
 // Function to populate filters (year, crime category, weapon category)
 function populateFilters(data) {
     console.log("Populating filters with data:", data);
@@ -88,31 +88,34 @@ function filterData() {
     const selectedWeapon = document.getElementById('weapon-filter').value;
     const selectedSolvedStatus = document.getElementById('solved-unsolved-filter').value;
 
-    // Filter based on selected year
+    // Filter based on selected year (for the other graphs)
     if (selectedYear) {
         filteredData = filteredData.filter(item => extractYear(item['date occ']) === parseInt(selectedYear));
     }
 
-    // Filter based on selected crime category
+    // Filter based on selected crime category (for the other graphs)
     if (selectedCrime) {
         filteredData = filteredData.filter(item => item.crime_category === selectedCrime);
     }
 
-    // Filter based on selected weapon category
+    // Filter based on selected weapon category (for the other graphs)
     if (selectedWeapon) {
         filteredData = filteredData.filter(item => item.weapon_category === selectedWeapon);
     }
 
-    // Filter based on selected solved/unsolved status
+    // Filter based on selected solved/unsolved status (for the other graphs)
     if (selectedSolvedStatus) {
         filteredData = filteredData.filter(item => getCrimeStatus(item['status desc']) === selectedSolvedStatus);
     }
 
-    // Re-render the graphs and heatmap with the filtered data
-    renderBarGraph(filteredData);
+    // Reinitialize the map and render data with filtered data
+    resetMap();
     renderHeatMap(filteredData);
+    renderBarGraph(filteredData);
+    renderLineGraph(filteredData);  // Call to render the line graph
     renderCrimeSummary(filteredData);
 }
+
 // Function to determine if a crime is solved or unsolved
 function getCrimeStatus(status) {
     const solvedStatuses = ['Adult Arrest', 'Adult Other', 'Juv Arrest', 'Juv Other'];
@@ -126,10 +129,10 @@ function getCrimeStatus(status) {
         return 'UNKNOWN'; 
     }
 }
+
 // Function to render Bar Graph using Chart.js
 let barChart = null;  
 
-// Function to render Bar Graph using Chart.js
 function renderBarGraph(data) {
     const crimeCategoryCounts = {
         SOLVED: {},
@@ -194,7 +197,7 @@ function renderHeatMap(data) {
     } else {
         // Clear previous markers if they exist
         map.eachLayer(layer => {
-            if (layer instanceof L.CircleMarker) {
+            if (layer instanceof L.CircleMarker || layer instanceof L.TileLayer) {
                 map.removeLayer(layer);
             }
         });
@@ -233,11 +236,27 @@ function renderHeatMap(data) {
         L.circleMarker([lat, lon], {
             radius: radius,
             color: 'black',        
-            weight: 2,             
+            weight: 2,              
             fillColor: color,      
             fillOpacity: 0.6       
         }).addTo(map);
     });
+}
+
+// Function to reinitialize the map
+function resetMap() {
+    if (map) {
+        // Clear all layers from the map
+        map.eachLayer(function (layer) {
+            if (layer instanceof L.Layer) {
+                map.removeLayer(layer);
+            }
+        });
+
+        // Reinitialize the map
+        map = L.map('heatmap').setView([34.0522, -118.2437], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    }
 }
 
 // Function to render the Crime Data Summary
@@ -252,14 +271,57 @@ function renderCrimeSummary(data) {
     // Calculate the solved rate (percentage of solved crimes)
     const solvedRate = totalCrimes > 0 ? (totalSolved / totalCrimes) * 100 : 0;
 
-    const summaryHTML = `
-        <p>Total Crimes: ${totalCrimes}</p>
-        <p>Solved Crimes: ${totalSolved}</p>
-        <p>Unsolved Crimes: ${totalUnsolved}</p>
-        <p>Solved Rate: ${solvedRate.toFixed(2)}%</p>
+    const summaryHTML = `\
+        <p>Total Crimes: ${totalCrimes}</p>\
+        <p>Solved Crimes: ${totalSolved}</p>\
+        <p>Unsolved Crimes: ${totalUnsolved}</p>\
+        <p>Solved Rate: ${solvedRate.toFixed(2)}%</p>\
     `;
 
     summaryElement.innerHTML = summaryHTML;
+}
+
+// Function to render the Line Graph using Chart.js
+let lineChart = null;  
+
+function renderLineGraph(data) {
+    const yearCounts = {};
+
+    // Count the number of crimes per year
+    data.forEach(crime => {
+        const year = extractYear(crime['date occ']);
+        if (year) {
+            if (!yearCounts[year]) {
+                yearCounts[year] = 0;
+            }
+            yearCounts[year] += 1;
+        }
+    });
+
+    const years = Object.keys(yearCounts).sort();
+    const crimeCounts = years.map(year => yearCounts[year]);
+
+    const ctx = document.getElementById('line-graph').getContext('2d');
+
+    // If there's an existing chart, destroy it before creating a new one
+    if (lineChart) {
+        lineChart.destroy();
+    }
+
+    // Create a new line chart instance
+    lineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: years,
+            datasets: [{
+                label: 'Crimes per Year',
+                data: crimeCounts,
+                borderColor: 'blue',
+                fill: false,
+                borderWidth: 2
+            }]
+        }
+    });
 }
 
 // Initialize the map once (if not initialized already)
@@ -270,4 +332,4 @@ function initializeMap() {
     }
 }
 
-initializeMap();  
+initializeMap();
