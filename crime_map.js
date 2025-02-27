@@ -11,7 +11,8 @@ d3.csv('https://crimedata2025.s3.us-east-2.amazonaws.com/cleaned_data.csv').then
     populateFilters(originalData);
     renderBarGraph(originalData);  
     renderHeatMap(originalData);  
-    renderCrimeSummary(originalData); 
+    renderCrimeSummary(originalData);
+    renderLineGraph(originalData); 
 
 }).catch(error => {
     console.error('Error loading the CSV file:', error);
