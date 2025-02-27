@@ -3,7 +3,7 @@ let originalData = [];
 let map, heatLayer;  
 
 // Load the CSV data - to be replaced when data is hosted on a server
-d3.csv('cleaned_data.csv').then(data => {
+d3.csv('https://crimedata2025.s3.us-east-2.amazonaws.com/cleaned_data.csv').then(data => {
     originalData = data;
     console.log("Data loaded:", originalData);
 
