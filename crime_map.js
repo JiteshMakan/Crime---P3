@@ -12,7 +12,7 @@ d3.csv('https://crimedata2025.s3.us-east-2.amazonaws.com/cleaned_data.csv').then
     renderBarGraph(originalData);  
     renderHeatMap(originalData);  
     renderCrimeSummary(originalData); 
-    renderLineGraph(originalData);  // Add initial render of the line graph
+    renderLineGraph(originalData);
 
 }).catch(error => {
     console.error('Error loading the CSV file:', error);
@@ -303,6 +303,10 @@ function renderLineGraph(data) {
 
     const years = Object.keys(yearCounts).sort();
     const crimeCounts = years.map(year => yearCounts[year]);
+
+    // Debugging: Log the years and crime counts
+    console.log("Years:", years);
+    console.log("Crime Counts:", crimeCounts);
 
     const ctx = document.getElementById('line-graph').getContext('2d');
 
