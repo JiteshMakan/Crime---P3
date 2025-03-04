@@ -96,9 +96,15 @@ An interactive map that shows crime hotspots within the city or region. Users ca
 
 • Interactive UI: The frontend will offer an intuitive interface where users can:
 
-**Select specific years or months for crime trends.**
+**Select specific filters for crime trends.**
+
+• Filter data by year.
 
 • Filter data by crime type (e.g., assault, theft, burglary).
+
+• Filter data by weapons type 
+
+• Filter data by Solved vs Unsolved
 
 ![image](https://github.com/user-attachments/assets/bc04c33e-5b9d-445a-9fd4-631bceffae0e)
 
