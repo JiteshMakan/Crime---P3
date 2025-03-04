@@ -30,7 +30,7 @@ The goal of this project is to analyze and visualize crime data in Los Angeles f
 
 ### Data Source:
 
-The project will utilize publicly available crime data from the U.S. Government’s open data portal, specifically the dataset Crime Data from 2020 to Present. This dataset includes detailed records on various types of crime, their locations, and timestamps.
+The project will utilize publicly available crime data from the U.S. Government’s open data portal, specifically the dataset Crime Data from 2020 to Present. This dataset includes detailed records on various types of crime, their status (solved vs unsolved), and timestamps.
 
 ### Dataset URL:
 
