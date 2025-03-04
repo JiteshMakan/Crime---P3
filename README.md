@@ -62,7 +62,7 @@ Dropdowns and Filters: Users will be able to filter crime data based on crime ty
 
 **Crime Rate by Type:**
 
-A bar chart that displays the crime rate distribution for different crime types across Los Angeles. Users can filter this by specific crime types narrow down their view.
+A bar chart that displays the crime rate distribution for different crime types across Los Angeles. Users can filter this by specific crime types to narrow down their view.
 
 ![image](https://github.com/user-attachments/assets/4c23673f-d967-47a5-9b48-74194771ece3)
 
