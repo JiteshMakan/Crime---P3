@@ -8,7 +8,9 @@ Svetlana Kachina
 
 Bryan Carney
 
-[Link to the Dashboard](https://jiteshmakan.github.io/Crime---P3/)
+### Dashboard Link
+
+[Click here](https://jiteshmakan.github.io/Crime---P3/)
 
 # Project Overview:
 
@@ -60,13 +62,13 @@ Dropdowns and Filters: Users will be able to filter crime data based on crime ty
 
 **Crime Rate by Type:**
 
-A bar chart or pie chart that displays the crime rate distribution for different crime types across Los Angeles. Users can filter this by specific cities or neighborhoods to narrow down their view.
+A bar chart that displays the crime rate distribution for different crime types across Los Angeles. Users can filter this by specific crime types narrow down their view.
 
 ![image](https://github.com/user-attachments/assets/4c23673f-d967-47a5-9b48-74194771ece3)
 
 **Crime Trends Over Time:**
 
-A time-series chart (line graph or area chart) that visualizes how crime rates have evolved over time. This will give insights into patterns or shifts in crime behavior (e.g., increase or decrease in crime after specific events, seasonal changes).
+A time-series chart (line graph) that visualizes how crime rates have evolved over time. This will give insights into patterns or shifts in crime behavior (e.g., increase or decrease in crime after specific events, seasonal changes).
 
 ![image](https://github.com/user-attachments/assets/74a4c215-af58-4eb5-aff9-a95408af3e8e)
 
