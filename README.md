@@ -8,6 +8,8 @@ Svetlana Kachina
 
 Bryan Carney
 
+[Link to the Dashboard](https://jiteshmakan.github.io/Crime---P3/)
+
 # Project Overview:
 
 The goal of this project is to analyze and visualize crime data in Los Angeles from 2020 to the present. By leveraging a data-driven approach, we aim to identify crime trends, rates, and patterns over time and across different locations in the city. The project will provide a comprehensive set of interactive visualizations, allowing users to explore various crime statistics in detail.
@@ -21,6 +23,8 @@ The goal of this project is to analyze and visualize crime data in Los Angeles f
 • Crime density heat maps showing crime hotspots within the city.
 
 • Interactive filters allowing users to adjust visualizations by crime type, time period, and location
+
+![image](https://github.com/user-attachments/assets/d88ea653-c192-48df-9643-a17e8e821a3c)
 
 ### Data Source:
 
@@ -46,7 +50,7 @@ To ensure a robust, scalable, and interactive platform, we will employ the follo
 
 • JavaScript: For building interactive features like dropdowns, maps, and filtering elements.
 
-• Plotly/Matplotlib: These libraries will be used for creating dynamic visualizations like heat maps, bar charts, and line graphs.
+• Plotly/Chart.js: These libraries will be used for creating dynamic visualizations like heat maps, bar charts, and line graphs.
 
 ### Features & Interactive Elements:
 
@@ -54,25 +58,31 @@ Dropdowns and Filters: Users will be able to filter crime data based on crime ty
 
 ### Three Key Views:
 
-**Crime Rate by Type and Location:**
+**Crime Rate by Type:**
 
 A bar chart or pie chart that displays the crime rate distribution for different crime types across Los Angeles. Users can filter this by specific cities or neighborhoods to narrow down their view.
+
+![image](https://github.com/user-attachments/assets/4c23673f-d967-47a5-9b48-74194771ece3)
 
 **Crime Trends Over Time:**
 
 A time-series chart (line graph or area chart) that visualizes how crime rates have evolved over time. This will give insights into patterns or shifts in crime behavior (e.g., increase or decrease in crime after specific events, seasonal changes).
 
+![image](https://github.com/user-attachments/assets/74a4c215-af58-4eb5-aff9-a95408af3e8e)
+
 **Crime Density Heat Map:**
 
 An interactive map that shows crime hotspots within the city or region. Users can zoom in on specific areas of Los Angeles and view crime concentrations for various crime types, with the ability to filter by year and crime category.
+
+![image](https://github.com/user-attachments/assets/7454dd7b-0b31-4b95-be27-5f6fc3ed9f53)
 
 ### Technical Workflow:
 
 • Data Storage: The crime data will be cleaned and imported into a PostgreSQL database, ensuring efficient querying and analysis.
 
-**Backend (Flask + Python):**
+**Backend (AWS + Python):**
 
-• Flask will handle HTTP requests and serve data to the frontend.
+• AWS S3 & D3 will handle HTTP requests and serve data to the frontend.
 
 • Python (with libraries like Pandas and NumPy) will be used for data processing, including calculating crime trends, aggregating data, and preparing it for visualization.
 
@@ -80,7 +90,7 @@ An interactive map that shows crime hotspots within the city or region. Users ca
 
 • JavaScript will provide dynamic user interactivity (dropdowns, maps, time range selectors).
 
-• Plotly/Matplotlib will be used to generate the interactive charts and heat maps, ensuring smooth rendering of visualizations.
+• Plotly/Chart.js will be used to generate the interactive charts and heat maps, ensuring smooth rendering of visualizations.
 
 • Interactive UI: The frontend will offer an intuitive interface where users can:
 
@@ -88,7 +98,7 @@ An interactive map that shows crime hotspots within the city or region. Users ca
 
 • Filter data by crime type (e.g., assault, theft, burglary).
 
-• View crime hotspots on an interactive map with selectable layers for different crime types.
+![image](https://github.com/user-attachments/assets/bc04c33e-5b9d-445a-9fd4-631bceffae0e)
 
 # Conclusion:
 
